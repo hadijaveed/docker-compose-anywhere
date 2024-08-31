@@ -1,7 +1,9 @@
 # Dependency directories
 # Virtual environment
 backend/.venv/
+# Virtual environment (try different variations)
 .venv/
+.venv
 
 
 node_modules/
