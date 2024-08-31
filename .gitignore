@@ -1,4 +1,9 @@
 # Dependency directories
+# Virtual environment
+backend/.venv/
+.venv/
+
+
 node_modules/
 venv/
 __pycache__/
