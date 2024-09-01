@@ -37,13 +37,14 @@ jobs:
             sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
 
-      - name: Restart Docker
+      - name: Give user ability to run docker and restart Docker
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            sudo usermod -aG docker $USER
             if command -v systemctl >/dev/null 2>&1; then
               sudo systemctl restart docker
             elif command -v service >/dev/null 2>&1; then
@@ -78,22 +79,4 @@ jobs:
             compose_version=$(docker-compose --version)
             echo "Docker Compose version: $compose_version"
 
-      - name: Generate GitHub Personal Access Token
-        id: generate_pat
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.repository }}
-
-      - name: Setup Docker to pull from GHCR
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            echo "${{ steps.generate_pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            echo "Docker login successful. Ready to pull containers from GHCR."
             echo "Docker and docker compose have been installed. Server is ready to use 🎉🥳"

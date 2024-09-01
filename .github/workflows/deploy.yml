@@ -123,16 +123,6 @@ jobs:
           sudo chmod 600 ${{ env.ROOT_DIRECTORY }}/.env
           sudo chmod 644 ${{ env.ROOT_DIRECTORY }}/docker-compose.yml
 
-
-    - name: Login to GitHub Container Registry on the remote server
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          sudo -E sh -c 'echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin'
-
     - name: Deploy with Docker Compose
       uses: appleboy/ssh-action@master
       with:
@@ -140,6 +130,7 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         script: |
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           cd ${{ env.ROOT_DIRECTORY }}
           sudo docker-compose pull
           sudo docker-compose up -d
