@@ -18,16 +18,15 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.DEPLOYMENT_KEY }}
 
-      - name: Install Docker
+      - name: Install Docker and the plugins
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.DEPLOYMENT_KEY }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             curl -fsSL https://get.docker.com -o get-docker.sh
             sh get-docker.sh
-            
             mkdir -p ~/.docker/cli-plugins
             curl https://raw.githubusercontent.com/wowu/docker-rollout/master/docker-rollout -o ~/.docker/cli-plugins/docker-rollout
             chmod +x ~/.docker/cli-plugins/docker-rollout
@@ -36,8 +35,8 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.DEPLOYMENT_KEY }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d '"' -f 4)
             sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -47,8 +46,8 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.DEPLOYMENT_KEY }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             if command -v systemctl >/dev/null 2>&1; then
               sudo systemctl restart docker
@@ -58,14 +57,15 @@ jobs:
               sudo /etc/init.d/docker restart
             else
               echo "Unable to restart Docker. Please restart it manually."
+              exit 1
             fi
 
       - name: Validate Docker and Docker Compose Installation
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.DEPLOYMENT_KEY }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             # Validate Docker installation
             if ! command -v docker &> /dev/null; then
@@ -83,4 +83,4 @@ jobs:
             compose_version=$(docker-compose --version)
             echo "Docker Compose version: $compose_version"
 
-            echo "Docker and Docker Compose are successfully installed and validated."
+            echo "Docker and docker compose have been installed. Server is ready to use 🎉🥳"
