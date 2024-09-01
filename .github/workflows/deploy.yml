@@ -109,5 +109,16 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         source: ".env,docker-compose-prod.yml"
-        target: "${{ env.ROOT_DIRECTORY }}"
+        target: "/tmp"
+
+    - name: Move files to ROOT_DIRECTORY and set permissions
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          sudo mv /tmp/.env /tmp/docker-compose-prod.yml ${{ env.ROOT_DIRECTORY }}/
+          sudo chown ${{ secrets.USER }}:${{ secrets.USER }} ${{ env.ROOT_DIRECTORY }}/.env ${{ env.ROOT_DIRECTORY }}/docker-compose-prod.yml
+          sudo chmod 644 ${{ env.ROOT_DIRECTORY }}/.env ${{ env.ROOT_DIRECTORY }}/docker-compose-prod.yml
 
