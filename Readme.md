@@ -6,7 +6,7 @@ Generate SSH key on your local unix system using the following command:
 
 1. Generate SSH Key
 ```
-ssh-keygen -t rsa -b 4096 -C "<user-name>"
+ssh-keygen -t rsa -b 4096 -C "<user-nam>"
 ```
 When prompted for paraphrase, either press enter or enter one. (It is recommended for added security) 
 

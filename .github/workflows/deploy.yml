@@ -8,6 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  SERVICES: app,background,web
 
 jobs:
   build-and-push:
@@ -27,29 +28,52 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and push Backend image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./backend
-        file: ./backend/Dockerfile
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-    - name: Build and push Frontend image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./frontend
-        file: ./frontend/Dockerfile
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+    - name: Build and push images
+      env:
+        SERVICES_TO_BUILD: ${{ env.SERVICES }}
+      run: |
+        # Check if docker-compose.yml exists
+        if [ ! -f "docker-compose.yml" ]; then
+          echo "Error: docker-compose.yml not found"
+          exit 1
+        fi
 
-    - name: Build and push Background image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./backend
-        file: ./backend/Dockerfile.background
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/background:latest
+        echo "Services to build: $SERVICES_TO_BUILD"
+
+        # Split the SERVICES_TO_BUILD environment variable into an array
+        IFS=',' read -ra services <<< "$SERVICES_TO_BUILD"
+        
+        for service in "${services[@]}"
+        do
+          echo "Processing service: $service"
+
+          # Get the build context and Dockerfile path from docker-compose.yml
+          context=$(docker-compose config | yq e ".services.$service.build.context" -)
+          dockerfile=$(docker-compose config | yq e ".services.$service.build.dockerfile" -)
+          
+          # If context or dockerfile is null, use default values
+          context=${context:-"./$service"}
+          dockerfile=${dockerfile:-"$context/Dockerfile"}
+          
+          echo "Building and pushing $service"
+          echo "Context: $context"
+          echo "Dockerfile: $dockerfile"
+
+          # Build and push the image
+          docker buildx build \
+            --context $context \
+            --file $dockerfile \
+            --push \
+            --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/$service:latest \
+            .
+
+          echo "Finished building and pushing $service"
+        done
+
+        echo "All services processed"
 
     # - name: Deploy to VM
     #   uses: appleboy/ssh-action@master
