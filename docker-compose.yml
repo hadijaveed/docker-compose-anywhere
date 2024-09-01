@@ -72,7 +72,7 @@ services:
         wait
       "
 
-  app:
+  api:
     build:
       context: ./backend
       dockerfile: Dockerfile
