@@ -1,44 +1,51 @@
-name: Docker Compose Deploy
+name: Build and Push Docker Images
 
 on:
   push:
-    branches: [ main ]  # Trigger the action on push to main branch
+    branches:
+      - main  # or your default branch
 
 env:
-  SERVICES: app,web,background  # Comma-separated list of services
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-
-    - name: Login to GitHub Container Registry
+    - name: Log in to the Container registry
       uses: docker/login-action@v1
       with:
-        registry: ghcr.io
+        registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Read Docker Compose file
-      id: docker_compose
-      run: |
-        echo "COMPOSE_SERVICES=$(yq e '.services | keys | join(",")' docker-compose.yml)" >> $GITHUB_OUTPUT
+    - name: Build and push web image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./frontend
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/web:latest
 
-    - name: Build and push Docker images
-      run: |
-        IFS=',' read -ra SERVICES_ARRAY <<< "${{ env.SERVICES }}"
-        for service in "${SERVICES_ARRAY[@]}"; do
-          if [[ "${{ steps.docker_compose.outputs.COMPOSE_SERVICES }}" == *"$service"* ]]; then
-            docker-compose build $service
-            image_name=$(yq e ".services.$service.image" docker-compose.yml)
-            docker tag $image_name ghcr.io/${{ github.repository }}/$image_name:${{ github.sha }}
-            docker push ghcr.io/${{ github.repository }}/$image_name:${{ github.sha }}
-          else
-            echo "Service $service not found in docker-compose.yml"
-          fi
-        done
+    - name: Build and push app image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/app:latest
+
+    - name: Build and push background image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile.background
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/background:latest
