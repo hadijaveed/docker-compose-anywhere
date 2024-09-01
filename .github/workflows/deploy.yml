@@ -132,7 +132,7 @@ jobs:
         script: |
           echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
           cd ${{ env.ROOT_DIRECTORY }}
-          sudo docker-compose pull || true
+          sudo docker-compose pull
           sudo docker-compose up -d --remove-orphans
           sudo docker image prune -f
 
