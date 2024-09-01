@@ -1,14 +1,18 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches:
-      - main  # or your default branch
+  workflow_dispatch:
+
+# on:
+#   push:
+#     branches:
+#       - main  # or your default branch
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   SERVICES_TO_PUSH: web,app,background
+  ROOT_DIRECTORY: /opt
 
 jobs:
   build-and-push:
@@ -38,47 +42,72 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Parse docker-compose file and build/push images
+    - name: Create .env file
       run: |
-        import yaml
-        import os
+        echo "PROD_DB_USER=${{ secrets.PROD_DB_USER }}" >> .env
+        echo "PROD_DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> .env
+        # Add other environment variables as needed
+        echo "ENVIRONMENT=PRODUCTION" >> .env
+        echo "USE_SSL=true" >> .env
+        echo "ACME_EMAIL=${{ secrets.ACME_EMAIL }}" >> .env
+        echo "TRAEFIK_DASHBOARD_DOMAIN=${{ secrets.TRAEFIK_DASHBOARD_DOMAIN }}" >> .env
+        echo "TRAEFIK_DASHBOARD_AUTH=${{ secrets.TRAEFIK_DASHBOARD_AUTH }}" >> .env
+        echo "API_DOMAIN=${{ secrets.API_DOMAIN }}" >> .env
+        echo "WEB_DOMAIN=${{ secrets.WEB_DOMAIN }}" >> .env
+        echo "POSTGRES_USER=${{ secrets.PROD_DB_USER }}" >> .env
+        echo "POSTGRES_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> .env
+        echo "POSTGRES_DB=${{ secrets.PROD_DB_NAME }}" >> .env
 
-        def parse_docker_compose():
-            with open('docker-compose.yml', 'r') as file:
-                return yaml.safe_load(file)
+    # - name: Parse docker-compose file and build/push images
+    #   run: |
+    #     import yaml
+    #     import os
 
-        def build_and_push_image(service, config):
-            context = config.get('build', {}).get('context', '.')
-            dockerfile = config.get('build', {}).get('dockerfile', 'Dockerfile')
-            
-            if not os.path.isabs(dockerfile):
-                dockerfile = os.path.join(context, dockerfile)
-            
-            print(f"Processing service: {service}")
-            print(f"Context for {service}: {context}")
-            print(f"Dockerfile for {service}: {dockerfile}")
-            
-            registry = os.environ['REGISTRY']
-            image_name = os.environ['IMAGE_NAME']
-            
-            build_cmd = f"docker build -t {registry}/{image_name}/{service}:latest -f {dockerfile} {context}"
-            push_cmd = f"docker push {registry}/{image_name}/{service}:latest"
-            
-            print(f"Building image for {service}...")
-            os.system(build_cmd)
-            
-            print(f"Pushing image for {service}...")
-            os.system(push_cmd)
-            
-            print(f"Completed processing for {service}")
-            print("-----------------------------------")
+    #     def parse_docker_compose():
+    #         with open('docker-compose.yml', 'r') as file:
+    #             return yaml.safe_load(file)
 
-        docker_compose = parse_docker_compose()
-        services_to_push = os.environ['SERVICES_TO_PUSH'].split(',')
+    #     def build_and_push_image(service, config):
+    #         context = config.get('build', {}).get('context', '.')
+    #         dockerfile = config.get('build', {}).get('dockerfile', 'Dockerfile')
+            
+    #         if not os.path.isabs(dockerfile):
+    #             dockerfile = os.path.join(context, dockerfile)
+            
+    #         print(f"Processing service: {service}")
+    #         print(f"Context for {service}: {context}")
+    #         print(f"Dockerfile for {service}: {dockerfile}")
+            
+    #         registry = os.environ['REGISTRY']
+    #         image_name = os.environ['IMAGE_NAME']
+            
+    #         build_cmd = f"docker build -t {registry}/{image_name}/{service}:latest -f {dockerfile} {context}"
+    #         push_cmd = f"docker push {registry}/{image_name}/{service}:latest"
+            
+    #         print(f"Building image for {service}...")
+    #         os.system(build_cmd)
+            
+    #         print(f"Pushing image for {service}...")
+    #         os.system(push_cmd)
+            
+    #         print(f"Completed processing for {service}")
+    #         print("-----------------------------------")
 
-        for service in services_to_push:
-            if service in docker_compose['services']:
-                build_and_push_image(service, docker_compose['services'][service])
-            else:
-                print(f"Warning: Service {service} not found in docker-compose.yml")
-      shell: python
+    #     docker_compose = parse_docker_compose()
+    #     services_to_push = os.environ['SERVICES_TO_PUSH'].split(',')
+
+    #     for service in services_to_push:
+    #         if service in docker_compose['services']:
+    #             build_and_push_image(service, docker_compose['services'][service])
+    #         else:
+    #             print(f"Warning: Service {service} not found in docker-compose.yml")
+    #   shell: python
+    - name: Copy .env and docker-compose-prod files to remote server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: ".env,docker-compose-prod.yml"
+        target: "${{ env.ROOT_DIRECTORY }}"
+
