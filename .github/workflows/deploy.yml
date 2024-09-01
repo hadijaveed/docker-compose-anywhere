@@ -1,0 +1,73 @@
+name: Deploy and Push to GHCR
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Backend image
+      uses: docker/build-push-action@v4
+      with:
+        context: ./backend
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+
+    - name: Build and push Frontend image
+      uses: docker/build-push-action@v4
+      with:
+        context: ./frontend
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+
+    - name: Build and push Background image
+      uses: docker/build-push-action@v4
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile.background
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/background:latest
+
+    # - name: Deploy to VM
+    #   uses: appleboy/ssh-action@master
+    #   with:
+    #     host: ${{ secrets.HOST }}
+    #     username: ${{ secrets.USER }}
+    #     key: ${{ secrets.SSH_KEY }}
+    #     script: |
+    #       # Log in to GHCR using GITHUB_TOKEN
+    #       echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+    #       # Pull the latest images
+    #       docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+    #       docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+    #       docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/background:latest
+          
+    #       # Stop and remove existing containers (if any)
+    #       docker-compose down
+          
+    #       # Start the new containers
+    #       docker-compose up -d
+
+
