@@ -42,50 +42,50 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Parse docker-compose file and build/push images
-      run: |
-        import yaml
-        import os
+    # - name: Parse docker-compose file and build/push images
+    #   run: |
+    #     import yaml
+    #     import os
 
-        def parse_docker_compose():
-            with open('docker-compose.yml', 'r') as file:
-                return yaml.safe_load(file)
+    #     def parse_docker_compose():
+    #         with open('docker-compose.yml', 'r') as file:
+    #             return yaml.safe_load(file)
 
-        def build_and_push_image(service, config):
-            context = config.get('build', {}).get('context', '.')
-            dockerfile = config.get('build', {}).get('dockerfile', 'Dockerfile')
+    #     def build_and_push_image(service, config):
+    #         context = config.get('build', {}).get('context', '.')
+    #         dockerfile = config.get('build', {}).get('dockerfile', 'Dockerfile')
             
-            if not os.path.isabs(dockerfile):
-                dockerfile = os.path.join(context, dockerfile)
+    #         if not os.path.isabs(dockerfile):
+    #             dockerfile = os.path.join(context, dockerfile)
             
-            print(f"Processing service: {service}")
-            print(f"Context for {service}: {context}")
-            print(f"Dockerfile for {service}: {dockerfile}")
+    #         print(f"Processing service: {service}")
+    #         print(f"Context for {service}: {context}")
+    #         print(f"Dockerfile for {service}: {dockerfile}")
             
-            registry = os.environ['REGISTRY']
-            image_name = os.environ['IMAGE_NAME']
+    #         registry = os.environ['REGISTRY']
+    #         image_name = os.environ['IMAGE_NAME']
             
-            build_cmd = f"docker build -t {registry}/{image_name}/{service}:latest -f {dockerfile} {context}"
-            push_cmd = f"docker push {registry}/{image_name}/{service}:latest"
+    #         build_cmd = f"docker build -t {registry}/{image_name}/{service}:latest -f {dockerfile} {context}"
+    #         push_cmd = f"docker push {registry}/{image_name}/{service}:latest"
             
-            print(f"Building image for {service}...")
-            os.system(build_cmd)
+    #         print(f"Building image for {service}...")
+    #         os.system(build_cmd)
             
-            print(f"Pushing image for {service}...")
-            os.system(push_cmd)
+    #         print(f"Pushing image for {service}...")
+    #         os.system(push_cmd)
             
-            print(f"Completed processing for {service}")
-            print("-----------------------------------")
+    #         print(f"Completed processing for {service}")
+    #         print("-----------------------------------")
 
-        docker_compose = parse_docker_compose()
-        services_to_push = os.environ['SERVICES_TO_PUSH'].split(',')
+    #     docker_compose = parse_docker_compose()
+    #     services_to_push = os.environ['SERVICES_TO_PUSH'].split(',')
 
-        for service in services_to_push:
-            if service in docker_compose['services']:
-                build_and_push_image(service, docker_compose['services'][service])
-            else:
-                print(f"Warning: Service {service} not found in docker-compose.yml")
-      shell: python
+    #     for service in services_to_push:
+    #         if service in docker_compose['services']:
+    #             build_and_push_image(service, docker_compose['services'][service])
+    #         else:
+    #             print(f"Warning: Service {service} not found in docker-compose.yml")
+    #   shell: python
 
 
     - name: Create .env file for host
@@ -131,7 +131,7 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          sudo -E sh -c 'echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin'
 
     - name: Deploy with Docker Compose
       uses: appleboy/ssh-action@master
@@ -141,6 +141,6 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           cd ${{ env.ROOT_DIRECTORY }}
-          docker-compose pull
-          docker-compose up -d
+          sudo docker-compose pull
+          sudo docker-compose up -d
 
