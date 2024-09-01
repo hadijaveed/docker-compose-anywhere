@@ -130,8 +130,9 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
           cd ${{ env.ROOT_DIRECTORY }}
-          sudo docker-compose pull
-          sudo docker-compose up -d
+          sudo docker-compose pull || true
+          sudo docker-compose up -d --remove-orphans
+          sudo docker image prune -f
 
