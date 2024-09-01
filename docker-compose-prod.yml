@@ -139,7 +139,7 @@ services:
   web:
     image: gcr.io/receptionaist/dyrt-web:latest
     depends_on:
-      - app
+      - api
     networks:
       - net
     restart: always

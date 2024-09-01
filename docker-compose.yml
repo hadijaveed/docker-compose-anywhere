@@ -121,7 +121,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     depends_on:
-      - app
+      - api
     networks:
       - net
     labels:
