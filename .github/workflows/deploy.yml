@@ -21,6 +21,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyyaml
+
     - name: Log in to the Container registry
       uses: docker/login-action@v1
       with:
@@ -28,33 +38,47 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Parse docker-compose file
-      id: docker_compose
+    - name: Parse docker-compose file and build/push images
       run: |
-        services=$(yq e '.services | keys | join(",")' docker-compose.yml)
-        echo "SERVICES=$services" >> $GITHUB_OUTPUT
+        import yaml
+        import os
 
-    - name: Build and push images
-      run: |
-        IFS=',' read -ra SERVICES <<< "${{ env.SERVICES_TO_PUSH }}"
-        for service in "${SERVICES[@]}"; do
-          echo "Processing service: $service"
-          
-          context=$(yq e ".services.$service.build.context" docker-compose.yml)
-          echo "Context for $service: $context"
-          
-          dockerfile=$(yq e ".services.$service.build.dockerfile" docker-compose.yml)
-          if [ "$dockerfile" = "null" ]; then
-            dockerfile="$context/Dockerfile"
-          fi
-          echo "Dockerfile for $service: $dockerfile"
-          
-          echo "Building image for $service..."
-          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/$service:latest -f $dockerfile $context
-          
-          echo "Pushing image for $service..."
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/$service:latest
-          
-          echo "Completed processing for $service"
-          echo "-----------------------------------"
-        done
+        def parse_docker_compose():
+            with open('docker-compose.yml', 'r') as file:
+                return yaml.safe_load(file)
+
+        def build_and_push_image(service, config):
+            context = config.get('build', {}).get('context', '.')
+            dockerfile = config.get('build', {}).get('dockerfile', 'Dockerfile')
+            
+            if not os.path.isabs(dockerfile):
+                dockerfile = os.path.join(context, dockerfile)
+            
+            print(f"Processing service: {service}")
+            print(f"Context for {service}: {context}")
+            print(f"Dockerfile for {service}: {dockerfile}")
+            
+            registry = os.environ['REGISTRY']
+            image_name = os.environ['IMAGE_NAME']
+            
+            build_cmd = f"docker build -t {registry}/{image_name}/{service}:latest -f {dockerfile} {context}"
+            push_cmd = f"docker push {registry}/{image_name}/{service}:latest"
+            
+            print(f"Building image for {service}...")
+            os.system(build_cmd)
+            
+            print(f"Pushing image for {service}...")
+            os.system(push_cmd)
+            
+            print(f"Completed processing for {service}")
+            print("-----------------------------------")
+
+        docker_compose = parse_docker_compose()
+        services_to_push = os.environ['SERVICES_TO_PUSH'].split(',')
+
+        for service in services_to_push:
+            if service in docker_compose['services']:
+                build_and_push_image(service, docker_compose['services'][service])
+            else:
+                print(f"Warning: Service {service} not found in docker-compose.yml")
+      shell: python
