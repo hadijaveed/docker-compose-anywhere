@@ -8,6 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  SERVICES_TO_PUSH: web,app,background
 
 jobs:
   build-and-push:
@@ -27,25 +28,33 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and push web image
-      uses: docker/build-push-action@v2
-      with:
-        context: ./frontend
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/web:latest
+    - name: Parse docker-compose file
+      id: docker_compose
+      run: |
+        services=$(yq e '.services | keys | join(",")' docker-compose.yml)
+        echo "SERVICES=$services" >> $GITHUB_OUTPUT
 
-    - name: Build and push app image
-      uses: docker/build-push-action@v2
-      with:
-        context: ./backend
-        file: ./backend/Dockerfile
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/app:latest
-
-    - name: Build and push background image
-      uses: docker/build-push-action@v2
-      with:
-        context: ./backend
-        file: ./backend/Dockerfile.background
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/background:latest
+    - name: Build and push images
+      run: |
+        IFS=',' read -ra SERVICES <<< "${{ env.SERVICES_TO_PUSH }}"
+        for service in "${SERVICES[@]}"; do
+          echo "Processing service: $service"
+          
+          context=$(yq e ".services.$service.build.context" docker-compose.yml)
+          echo "Context for $service: $context"
+          
+          dockerfile=$(yq e ".services.$service.build.dockerfile" docker-compose.yml)
+          if [ "$dockerfile" = "null" ]; then
+            dockerfile="$context/Dockerfile"
+          fi
+          echo "Dockerfile for $service: $dockerfile"
+          
+          echo "Building image for $service..."
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/$service:latest -f $dockerfile $context
+          
+          echo "Pushing image for $service..."
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/$service:latest
+          
+          echo "Completed processing for $service"
+          echo "-----------------------------------"
+        done
