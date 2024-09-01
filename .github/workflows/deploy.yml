@@ -31,6 +31,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: ./backend
+        file: ./backend/Dockerfile
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
 
@@ -38,6 +39,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: ./frontend
+        file: ./frontend/Dockerfile
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
 
