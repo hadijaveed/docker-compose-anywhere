@@ -78,4 +78,22 @@ jobs:
             compose_version=$(docker-compose --version)
             echo "Docker Compose version: $compose_version"
 
+      - name: Generate GitHub Personal Access Token
+        id: generate_pat
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.repository }}
+
+      - name: Setup Docker to pull from GHCR
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            echo "${{ steps.generate_pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "Docker login successful. Ready to pull containers from GHCR."
             echo "Docker and docker compose have been installed. Server is ready to use 🎉🥳"
