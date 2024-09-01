@@ -56,11 +56,6 @@ coverage/
 # Alembic migration files
 alembic/versions/
 
-# Docker
-.dockerignore
-Dockerfile
-docker-compose.yml
-
 # Miscellaneous
 *.pem
 *.tsbuildinfo
