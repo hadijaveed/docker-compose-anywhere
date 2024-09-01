@@ -1,99 +1,44 @@
-name: Deploy and Push to GHCR
+name: Docker Compose Deploy
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main ]  # Trigger the action on push to main branch
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  SERVICES: app,background,web
+  SERVICES: app,web,background  # Comma-separated list of services
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    - name: Log in to the Container registry
-      uses: docker/login-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
       with:
-        registry: ${{ env.REGISTRY }}
+        registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Build and push images
-      env:
-        SERVICES_TO_BUILD: ${{ env.SERVICES }}
+    - name: Read Docker Compose file
+      id: docker_compose
       run: |
-        # Check if docker-compose.yml exists
-        if [ ! -f "docker-compose.yml" ]; then
-          echo "Error: docker-compose.yml not found"
-          exit 1
-        fi
+        echo "COMPOSE_SERVICES=$(yq e '.services | keys | join(",")' docker-compose.yml)" >> $GITHUB_OUTPUT
 
-        echo "Services to build: $SERVICES_TO_BUILD"
-
-        # Split the SERVICES_TO_BUILD environment variable into an array
-        IFS=',' read -ra services <<< "$SERVICES_TO_BUILD"
-        
-        for service in "${services[@]}"
-        do
-          echo "Processing service: $service"
-
-          # Get the build context and Dockerfile path from docker-compose.yml
-          context=$(docker-compose config | yq e ".services.$service.build.context" -)
-          dockerfile=$(docker-compose config | yq e ".services.$service.build.dockerfile" -)
-          
-          # If context or dockerfile is null, use default values
-          context=${context:-"./$service"}
-          dockerfile=${dockerfile:-"$context/Dockerfile"}
-          
-          echo "Building and pushing $service"
-          echo "Context: $context"
-          echo "Dockerfile: $dockerfile"
-
-          # Build and push the image
-          docker buildx build \
-            --context $context \
-            --file $dockerfile \
-            --push \
-            --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/$service:latest \
-            .
-
-          echo "Finished building and pushing $service"
+    - name: Build and push Docker images
+      run: |
+        IFS=',' read -ra SERVICES_ARRAY <<< "${{ env.SERVICES }}"
+        for service in "${SERVICES_ARRAY[@]}"; do
+          if [[ "${{ steps.docker_compose.outputs.COMPOSE_SERVICES }}" == *"$service"* ]]; then
+            docker-compose build $service
+            image_name=$(yq e ".services.$service.image" docker-compose.yml)
+            docker tag $image_name ghcr.io/${{ github.repository }}/$image_name:${{ github.sha }}
+            docker push ghcr.io/${{ github.repository }}/$image_name:${{ github.sha }}
+          else
+            echo "Service $service not found in docker-compose.yml"
+          fi
         done
-
-        echo "All services processed"
-
-    # - name: Deploy to VM
-    #   uses: appleboy/ssh-action@master
-    #   with:
-    #     host: ${{ secrets.HOST }}
-    #     username: ${{ secrets.USER }}
-    #     key: ${{ secrets.SSH_KEY }}
-    #     script: |
-    #       # Log in to GHCR using GITHUB_TOKEN
-    #       echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          
-    #       # Pull the latest images
-    #       docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
-    #       docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
-    #       docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/background:latest
-          
-    #       # Stop and remove existing containers (if any)
-    #       docker-compose down
-          
-    #       # Start the new containers
-    #       docker-compose up -d
-
-
