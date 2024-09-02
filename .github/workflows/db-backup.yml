@@ -40,10 +40,10 @@ jobs:
           sudo mkdir -p $BACKUP_DIR
 
           # Take a snapshot of the PostgreSQL database
-          docker exec -t $POSTGRES_CONTAINER pg_dumpall -U "$POSTGRES_USER" > "$BACKUP_FILE"
+          sudo docker exec -t $POSTGRES_CONTAINER pg_dumpall -U "$POSTGRES_USER" > "$BACKUP_FILE"
 
           # Remove backups older than specified number of days
-          find $BACKUP_DIR -type f -name "*.sql" -mtime +$STORE_NUMBER_OF_DAYS_BACKUP -exec rm {} \;
+          sudo find $BACKUP_DIR -type f -name "*.sql" -mtime +$STORE_NUMBER_OF_DAYS_BACKUP -exec rm {} \;
 
           echo "Backup completed at $TIMESTAMP"
 
