@@ -34,7 +34,10 @@ jobs:
           # Create the backup directory if it doesn't exist
           mkdir -p $BACKUP_DIR
           # Take a snapshot of the PostgreSQL database
-          docker exec -t ${{ env.POSTGRES_CONTAINER }} pg_dumpall -U "$POSTGRES_USER" > "$BACKUP_FILE"
+          if ! docker exec -t ${{ env.POSTGRES_CONTAINER }} pg_dumpall -U "$POSTGRES_USER" > "$BACKUP_FILE"; then
+            echo "Database backup failed. Please check the logs for more information."
+            exit 1
+          fi
           # Remove backups older than specified number of days
           find $BACKUP_DIR -type f -name "*.sql" -mtime "+$STORE_NUMBER_OF_DAYS_BACKUP" -delete
           echo "Backup completed at $TIMESTAMP"
