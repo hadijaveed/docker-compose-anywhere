@@ -9,7 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  SERVICES_TO_PUSH: web,app,background
+  SERVICES_TO_PUSH: web,api,background
   ROOT_DIRECTORY: /opt
 
 jobs:
