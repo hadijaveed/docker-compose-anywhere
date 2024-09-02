@@ -57,7 +57,7 @@ xclip < ~/.ssh/id_rsa
 - Add paraphrase to Github Secrets **PARAPHRASE**, if you have added one
 
 ## 2. Run the Initialize VM workflow
-Run the [Initialize VM workflow](.github/workflows/vm_init.yml) to set up Docker and Docker Compose on your server, and to get the VM ready
+Run the [Initialize VM workflow](https://github.com/hadijaveed/docker-compose-anywhere/actions/workflows/vm_init.yml) to set up Docker and Docker Compose on your server, and to get the VM ready. Run by clicking Run Workflow button
 
 ## 3. Define your docker compose files
 

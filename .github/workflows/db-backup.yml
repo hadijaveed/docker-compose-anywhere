@@ -34,7 +34,7 @@ jobs:
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
           
           # Use STORE_NUMBER_OF_DAYS_BACKUP from env or secrets
-          STORE_NUMBER_OF_DAYS_BACKUP=${STORE_NUMBER_OF_DAYS_BACKUP:-${{ secrets.STORE_NUMBER_OF_DAYS_BACKUP }}}
+          STORE_NUMBER_OF_DAYS_BACKUP=${STORE_NUMBER_OF_DAYS_BACKUP:-${STORE_NUMBER_OF_DAYS_BACKUP:-7}}
 
           # Create the backup directory if it doesn't exist
           sudo mkdir -p $BACKUP_DIR

@@ -55,13 +55,12 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_db:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-postgres}
       - POSTGRES_HOST_AUTH_METHOD=trust
-      - POSTGRES_MAX_CONNECTIONS=5000
     networks:
       - net
     restart: always
@@ -80,9 +79,10 @@ services:
         echo 'max_connections = 5000' >> /var/lib/postgresql/data/postgresql.conf
         docker-entrypoint.sh postgres &
         sleep 10
-        psql -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-postgres} -c 'CREATE EXTENSION IF NOT EXISTS vector;'
+        psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres} -c 'CREATE EXTENSION IF NOT EXISTS vector;'
         wait
       "
+
 
   api:
     image: ghcr.io/hadijaveed/docker-compose-anywhere/app:latest
@@ -154,7 +154,7 @@ services:
         max-file: "6"
 
 volumes:
-  postgres_db:
+  postgres_data:
   redis_data:
 
 networks:
