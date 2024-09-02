@@ -74,19 +74,12 @@ services:
       options:
         max-size: "50m"
         max-file: "6"
-    command: >
-      bash -c "
-        echo 'max_connections = 5000' >> /var/lib/postgresql/data/postgresql.conf
-        docker-entrypoint.sh postgres &
-        sleep 10
-        psql -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres} -c 'CREATE EXTENSION IF NOT EXISTS vector;'
-        wait
-      "
 
 
   api:
     image: ghcr.io/hadijaveed/docker-compose-anywhere/app:latest
     depends_on:
+      - traefik
       - db
       - redis
     env_file:
