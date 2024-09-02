@@ -26,7 +26,7 @@ Here's how to generate an SSH key on your local machine:
 
 1. Generate SSH Key
 ```
-ssh-keygen -t rsa -b 4096 -C "<server-user-name>"
+ssh-keygen -t rsa -b 4096 -C "server-user"
 ```
 When prompted for paraphrase, either press enter or not enter one. (It is recommended for added security) 
 

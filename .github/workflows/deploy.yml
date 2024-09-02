@@ -140,7 +140,7 @@ jobs:
           # Authenticate Docker with GitHub Container Registry
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           # Deploy services in SERVICES_TO_PUSH
-          docker-compose -f "$COMPOSE_FILE" pull $(echo ${{ env.SERVICES_TO_PUSH }} | tr ',' ' ')
+          docker compose -f "$COMPOSE_FILE" pull $(echo ${{ env.SERVICES_TO_PUSH }} | tr ',' ' ')
           IFS=',' read -ra SERVICES <<< "${{ env.SERVICES_TO_PUSH }}"
           for service in "${SERVICES[@]}"; do
             docker rollout -f "$COMPOSE_FILE" "$service"
