@@ -5,4 +5,4 @@ alembic
 uvicorn[standard]
 python-dotenv
 psycopg2-binary
-celery
+saq==v0.13.3

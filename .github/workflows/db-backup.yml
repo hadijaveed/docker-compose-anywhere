@@ -1,0 +1,54 @@
+name: Database Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run every night at 2 AM UTC
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  ROOT_DIRECTORY: /opt
+  BACKUP_DIR: /opt/pg_snapshots
+  STORE_NUMBER_OF_DAYS_BACKUP: 7  # Default value, can be overridden in repository secrets
+  POSTGRES_CONTAINER: postgres_db  # New environment variable for the container name
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Run backup script
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.SSH_KEY }}
+        envs: ROOT_DIRECTORY,BACKUP_DIR,STORE_NUMBER_OF_DAYS_BACKUP,POSTGRES_CONTAINER
+        script: |
+          set -e
+          TIMESTAMP=$(date +"%Y%m%d%H%M")
+          BACKUP_FILE="${BACKUP_DIR}/postgres_backup_${TIMESTAMP}.sql"
+
+          # Use POSTGRES_USER from secrets
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          
+          # Use STORE_NUMBER_OF_DAYS_BACKUP from env or secrets
+          STORE_NUMBER_OF_DAYS_BACKUP=${STORE_NUMBER_OF_DAYS_BACKUP:-${{ secrets.STORE_NUMBER_OF_DAYS_BACKUP }}}
+
+          # Create the backup directory if it doesn't exist
+          mkdir -p $BACKUP_DIR
+
+          # Take a snapshot of the PostgreSQL database
+          docker exec -t $POSTGRES_CONTAINER pg_dumpall -U "$POSTGRES_USER" > "$BACKUP_FILE"
+
+          # Remove backups older than specified number of days
+          find $BACKUP_DIR -type f -name "*.sql" -mtime +$STORE_NUMBER_OF_DAYS_BACKUP -exec rm {} \;
+
+          echo "Backup completed at $TIMESTAMP"
+
+    - name: Check for errors
+      if: failure()
+      run: |
+        echo "Database backup failed. Please check the logs for more information."
+        exit 1

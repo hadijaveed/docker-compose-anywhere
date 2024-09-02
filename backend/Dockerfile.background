@@ -8,4 +8,4 @@ RUN pip install -r /backend/requirements.txt
 
 EXPOSE 8080
 
-CMD ["arq", "backend.background.tasks.WorkerSettings"]
+CMD ["saq", "app.background.tasks.settings", "--quiet"]

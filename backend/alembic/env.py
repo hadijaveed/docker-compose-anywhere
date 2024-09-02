@@ -1,4 +1,10 @@
-from .models import Base
+import sys
+import os
+
+# Add the parent directory (backend) to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from app.models import Base
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
@@ -40,9 +46,6 @@ def include_object(object, name, type_, reflected, compare_to):
     """
     Should you include this table or not?
     """
-
-    if type_ == 'table' and (name in IGNORE_TABLES_IN_MIGRATION):
-        return False
 
     return True
 

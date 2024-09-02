@@ -12,6 +12,7 @@ from sqlalchemy import DateTime
 from sqlalchemy import Engine
 from sqlalchemy import String
 from sqlalchemy import Text
+from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
@@ -64,8 +65,11 @@ class Book(Base):
     book_name = Column(String, nullable=False)
     book_description = Column(Text)
     genre = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    embedding = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     def __repr__(self):
         return f"<Book(id={self.id}, book_name='{self.book_name}', genre='{self.genre}')>"

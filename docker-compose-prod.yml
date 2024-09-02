@@ -85,7 +85,7 @@ services:
       "
 
   api:
-    image: ghcr.io/hadijaveed/docker-compose-anywhere/api:latest
+    image: ghcr.io/hadijaveed/docker-compose-anywhere/app:latest
     depends_on:
       - db
       - redis
@@ -112,27 +112,27 @@ services:
         max-size: "50m"
         max-file: "6"
 
-  background:
-    image: ghcr.io/hadijaveed/docker-compose-anywhere/background:latest
-    depends_on:
-      - db
-      - redis
-    environment:
-      - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    networks:
-      - net
-    deploy:
-      replicas: ${BACKGROUND_REPLICAS:-2}
-    restart: always
-    env_file:
-      - .env
-    logging:
-      driver: json-file
-      options:
-        max-size: "50m"
-        max-file: "6"
+  # background:
+  #   image: ghcr.io/hadijaveed/docker-compose-anywhere/background:latest
+  #   depends_on:
+  #     - db
+  #     - redis
+  #   environment:
+  #     - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #   networks:
+  #     - net
+  #   deploy:
+  #     replicas: ${BACKGROUND_REPLICAS:-2}
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "50m"
+  #       max-file: "6"
 
   web:
     image: ghcr.io/hadijaveed/docker-compose-anywhere/web:latest
@@ -146,7 +146,7 @@ services:
       - "traefik.http.routers.web.rule=Host(`${WEB_DOMAIN:-app.localhost}`)"
       - "traefik.http.routers.web.tls=${USE_SSL:-false}"
       - "traefik.http.routers.web.tls.certresolver=myresolver"
-      - "traefik.http.services.web.loadbalancer.server.port=80"
+      - "traefik.http.services.web.loadbalancer.server.port=3001"
     logging:
       driver: json-file
       options:
