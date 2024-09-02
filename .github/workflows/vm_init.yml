@@ -19,71 +19,23 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          script_stop: true
           script: |
-            # Function to check if a command exists
-            command_exists() {
-              command -v "$1" > /dev/null 2>&1
-            }
-
-            # Check if it's Amazon Linux
-            if [ -f /etc/system-release ] && grep -q Amazon /etc/system-release; then
-              echo "Detected Amazon Linux. Installing Docker..."
-              sudo yum update -y
-              sudo yum install -y docker
-              sudo service docker start
-              sudo systemctl enable docker
-            else
-              echo "Installing Docker using the official installation script..."
-              curl -fsSL https://get.docker.com -o get-docker.sh
-              sudo sh get-docker.sh
-            fi
-
-            # Remove the installation script
-            rm -f get-docker.sh
-
-            # Add current user to docker group
-            sudo usermod -aG docker $USER
-
-            # Create directory for Docker CLI plugins
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sh get-docker.sh
             mkdir -p ~/.docker/cli-plugins
-
-            # Install docker-rollout plugin
             curl https://raw.githubusercontent.com/wowu/docker-rollout/master/docker-rollout -o ~/.docker/cli-plugins/docker-rollout
             chmod +x ~/.docker/cli-plugins/docker-rollout
 
-            # Restart Docker service
-            if command_exists systemctl; then
-              sudo systemctl restart docker
-            elif command_exists service; then
-              sudo service docker restart
-            elif [ -f /etc/init.d/docker ]; then
-              sudo /etc/init.d/docker restart
-            else
-              echo "Unable to restart Docker. Please restart it manually."
-            fi
-
-            echo "Docker installation and setup completed. You may need to log out and back in for group changes to take effect."
-
-      - name: Install Docker Compose
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script_stop: true
-          script: |
-            # Check if it's Amazon Linux
-            if [ -f /etc/system-release ] && grep -q Amazon /etc/system-release; then
-              echo "Detected Amazon Linux. Installing Docker Compose..."
-              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
-            else
-              echo "Installing Docker Compose for other Linux distributions..."
-              DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d '"' -f 4)
-              sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
-            fi
+      # - name: Install Docker Compose
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.HOST }}
+      #     username: ${{ secrets.USER }}
+      #     key: ${{ secrets.SSH_KEY }}
+      #     script: |
+      #       DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d '"' -f 4)
+      #       sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      #       sudo chmod +x /usr/local/bin/docker-compose
 
       - name: Give user ability to run docker and restart Docker
         uses: appleboy/ssh-action@v1.0.3
@@ -91,9 +43,8 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          script_stop: true
           script: |
-            sudo usermod -aG docker $USER && newgrp docker
+            sudo usermod -aG docker $USER
             if command -v systemctl >/dev/null 2>&1; then
               sudo systemctl restart docker
             elif command -v service >/dev/null 2>&1; then
@@ -111,7 +62,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          script_stop: true
           script: |
             # Validate Docker installation
             if ! command -v docker &> /dev/null; then
