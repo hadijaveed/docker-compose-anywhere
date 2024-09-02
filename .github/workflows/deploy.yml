@@ -133,6 +133,7 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
+        script_stop: true
         script: |
           cd ${{ env.ROOT_DIRECTORY }}
           COMPOSE_FILE="docker-compose.yml"
