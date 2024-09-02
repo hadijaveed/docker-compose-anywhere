@@ -27,7 +27,7 @@ jobs:
             chmod +x ~/.docker/cli-plugins/docker-rollout
 
       - name: Install Docker Compose
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
@@ -38,13 +38,13 @@ jobs:
             sudo chmod +x /usr/local/bin/docker-compose
 
       - name: Give user ability to run docker and restart Docker
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            sudo usermod -aG docker $USER
+            sudo usermod -aG docker $USER && newgrp docker
             if command -v systemctl >/dev/null 2>&1; then
               sudo systemctl restart docker
             elif command -v service >/dev/null 2>&1; then
@@ -57,7 +57,7 @@ jobs:
             fi
 
       - name: Validate Docker and Docker Compose Installation
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}

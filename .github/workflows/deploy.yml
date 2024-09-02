@@ -106,7 +106,7 @@ jobs:
         echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
 
     - name: Copy .env and docker-compose-prod files to remote server
-      uses: appleboy/scp-action@master
+      uses: appleboy/scp-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
@@ -115,7 +115,7 @@ jobs:
         target: "/tmp"
 
     - name: Move files to ROOT_DIRECTORY and set permissions
-      uses: appleboy/ssh-action@master
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
@@ -128,7 +128,7 @@ jobs:
           sudo chmod 644 ${{ env.ROOT_DIRECTORY }}/docker-compose.yml
 
     - name: Deploy with Docker Compose
-      uses: appleboy/ssh-action@master
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
