@@ -98,12 +98,12 @@ jobs:
         echo "USE_SSL=true" >> .env
         echo "ACME_EMAIL=${{ secrets.ACME_EMAIL }}" >> .env
         echo "TRAEFIK_DASHBOARD_DOMAIN=traefik.hadijaveed.me" >> .env
-        echo "TRAEFIK_DASHBOARD_AUTH=${{ secrets.PROD_TRAEFIK_DASHBOARD_AUTH }}" >> .env
+        echo "TRAEFIK_DASHBOARD_AUTH=${{ secrets.TRAEFIK_DASHBOARD_AUTH }}" >> .env
         echo "API_DOMAIN=api.hadijaveed.me" >> .env
         echo "WEB_DOMAIN=app.hadijaveed.me" >> .env
-        echo "POSTGRES_USER=${{ secrets.PROD_DB_USER }}" >> .env
-        echo "POSTGRES_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> .env
-        echo "POSTGRES_DB=${{ secrets.PROD_DB_NAME }}" >> .env
+        echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+        echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+        echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
 
     - name: Copy .env and docker-compose-prod files to remote server
       uses: appleboy/scp-action@master
