@@ -118,7 +118,7 @@ jobs:
               echo "Docker Compose is not installed or not in PATH"
               exit 1
             fi
-            compose_version=$(docker-compose --version)
+            compose_version=$(docker compose --version)
             echo "Docker Compose version: $compose_version"
 
             echo "Docker and docker compose have been installed. Server is ready to use 🎉🥳"
