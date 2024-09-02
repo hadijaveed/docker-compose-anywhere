@@ -137,6 +137,8 @@ jobs:
         script: |
           cd ${{ env.ROOT_DIRECTORY }}
           COMPOSE_FILE="docker-compose.yml"
+          # Authenticate Docker with GitHub Container Registry
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           # Deploy services in SERVICES_TO_PUSH
           docker-compose -f "$COMPOSE_FILE" pull $(echo $SERVICES_TO_PUSH | tr ',' ' ')
           for service in ${SERVICES_TO_PUSH[@]}; do
