@@ -12,6 +12,14 @@ THis project aims to provide workflows to deploy docker compose to production
 - Alerting and monitoring
 
 
+
+For the most up-to-date list of supported Linux distributions, please refer to the [official Docker documentation on supported platforms](https://docs.docker.com/engine/install/#supported-platforms).
+
+
+
+
+
+
 ## So let's get started
 First get a server or VM up and running. You can use any cloud provider (AWS EC2, GCP VM, Azure VM, Digital Ocean, Linode, etc) or even self hosted solution.
 
