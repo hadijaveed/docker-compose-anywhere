@@ -6,8 +6,6 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 env:
-  ROOT_DIRECTORY: /opt
-  BACKUP_DIR: /opt/pg_snapshots
   STORE_NUMBER_OF_DAYS_BACKUP: 7  # Default value, can be overridden in repository secrets
   POSTGRES_CONTAINER: postgres_db  # New environment variable for the container name
 
@@ -24,10 +22,11 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
-        envs: ROOT_DIRECTORY,BACKUP_DIR,STORE_NUMBER_OF_DAYS_BACKUP,POSTGRES_CONTAINER
+        envs: BACKUP_DIR,STORE_NUMBER_OF_DAYS_BACKUP,POSTGRES_CONTAINER
         script: |
           set -e
           TIMESTAMP=$(date +"%Y%m%d%H%M")
+          BACKUP_DIR="$HOME/pg_snapshots"
           BACKUP_FILE="${BACKUP_DIR}/postgres_backup_${TIMESTAMP}.sql"
 
           # Use POSTGRES_USER from secrets
@@ -37,13 +36,13 @@ jobs:
           STORE_NUMBER_OF_DAYS_BACKUP=${STORE_NUMBER_OF_DAYS_BACKUP:-${STORE_NUMBER_OF_DAYS_BACKUP:-7}}
 
           # Create the backup directory if it doesn't exist
-          sudo mkdir -p $BACKUP_DIR
+          mkdir -p $BACKUP_DIR
 
           # Take a snapshot of the PostgreSQL database
-          sudo sh -c "docker exec -t $POSTGRES_CONTAINER pg_dumpall -U '$POSTGRES_USER' > '$BACKUP_FILE'"
+          docker exec -t $POSTGRES_CONTAINER pg_dumpall -U "$POSTGRES_USER" > "$BACKUP_FILE"
 
           # Remove backups older than specified number of days
-          sudo find $BACKUP_DIR -type f -name "*.sql" -mtime +$STORE_NUMBER_OF_DAYS_BACKUP -exec rm {} \;
+          find $BACKUP_DIR -type f -name "*.sql" -mtime +$STORE_NUMBER_OF_DAYS_BACKUP -delete
 
           echo "Backup completed at $TIMESTAMP"
 
