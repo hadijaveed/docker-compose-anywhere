@@ -106,7 +106,7 @@ jobs:
         echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
 
     - name: Copy .env and docker-compose-prod files to remote server
-      uses: appleboy/ssh-action@v1.0.3
+      uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
