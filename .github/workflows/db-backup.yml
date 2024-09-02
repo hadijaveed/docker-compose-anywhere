@@ -22,24 +22,23 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
-        envs: BACKUP_DIR,STORE_NUMBER_OF_DAYS_BACKUP,POSTGRES_CONTAINER
         script: |
           set -e
           TIMESTAMP=$(date +"%Y%m%d%H%M")
           BACKUP_DIR="$HOME/pg_snapshots"
           BACKUP_FILE="${BACKUP_DIR}/postgres_backup_${TIMESTAMP}.sql"
 
-          # Use POSTGRES_USER from secrets
-          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          # Use POSTGRES_USER from env
+          POSTGRES_USER=${{ env.POSTGRES_USER }}
           
-          # Use STORE_NUMBER_OF_DAYS_BACKUP from env or secrets
-          STORE_NUMBER_OF_DAYS_BACKUP=${STORE_NUMBER_OF_DAYS_BACKUP:-${STORE_NUMBER_OF_DAYS_BACKUP:-7}}
+          # Use STORE_NUMBER_OF_DAYS_BACKUP from env
+          STORE_NUMBER_OF_DAYS_BACKUP=${{ env.STORE_NUMBER_OF_DAYS_BACKUP }}
 
           # Create the backup directory if it doesn't exist
           mkdir -p $BACKUP_DIR
 
           # Take a snapshot of the PostgreSQL database
-          docker exec -t $POSTGRES_CONTAINER pg_dumpall -U "$POSTGRES_USER" > "$BACKUP_FILE"
+          docker exec -t ${{ env.POSTGRES_CONTAINER }} pg_dumpall -U "$POSTGRES_USER" > "$BACKUP_FILE"
 
           # Remove backups older than specified number of days
           find $BACKUP_DIR -type f -name "*.sql" -mtime +$STORE_NUMBER_OF_DAYS_BACKUP -delete
