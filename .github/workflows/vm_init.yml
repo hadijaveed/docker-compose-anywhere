@@ -71,7 +71,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          script_stop: true
           script: |
             DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d '"' -f 4)
             sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -83,7 +82,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
-          script_stop: true
           script: |
             sudo usermod -aG docker $USER && newgrp docker
             if command -v systemctl >/dev/null 2>&1; then
@@ -113,7 +111,7 @@ jobs:
             echo "Docker version: $docker_version"
 
             # Validate Docker Compose installation
-            if ! command -v docker-compose &> /dev/null; then
+            if ! command -v docker compose &> /dev/null; then
               echo "Docker Compose is not installed or not in PATH"
               exit 1
             fi
