@@ -134,6 +134,28 @@ services:
         max-size: "50m"
         max-file: "6"
 
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - /path/to/dozzle/data:/data
+      - ./dozzle/data:/data
+    networks:
+      - net
+    environment:
+      DOZZLE_NO_ANALYTICS: true
+      DOZZLE_AUTH_PROVIDER: simple
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dozzle.rule=Host(`${DOZZLE_DOMAIN}`)"
+      - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 3s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
 volumes:
   postgres_db:
   redis_data:
