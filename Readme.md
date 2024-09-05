@@ -25,7 +25,7 @@ Follow these simple steps to set up your Docker Compose Anywhere environment:
 
 - Choose a cloud provider of your choice (e.g,DigitalOcean, Linode, AWS, GCP, or Hetzner)
 - Select a supported Linux distribution (see [Docker's supported platforms](https://docs.docker.com/engine/install/#supported-platforms))
-- Make sure only SSH access, HTTP and HTTPS ports are open for security
+- Make sure only SSH access, HTTP and HTTPS ports are open for security. 22, 80, 443
 
 ### 2. Generate SSH Key and Store in GitHub Secrets
 
