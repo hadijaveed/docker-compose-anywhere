@@ -3,7 +3,7 @@
 Docker Compose Anywhere is a template for hassle-free application hosting on a single, powerful server or VM.
 
 ## 💡 Motivation
-Infrastructure don't have to be this hard e.g, K8s, cloud lingo, etc. Most applications can run reliably on a single server/VM, given how powerful they are these days. We can focus on building product, not managing infrastructure. 
+Infrastructure don't have to be this hard e.g, K8s, cloud lingo, etc. Most applications can run reliably on a single server/VM, given how powerful they are these days. We can focus on building product, not managing complex infrastructure.
 
 Docker compose is great for local development, but running docker compose in production is challenging due to downtime, this template addresses zero downtime deployment and setup all through github actions
 
@@ -13,9 +13,9 @@ Docker compose is great for local development, but running docker compose in pro
 - Zero-downtime continuous deployment using GitHub Container Registry and [Docker Rollout](https://github.com/Wowu/docker-rollout)
 - Effortless secrets management with GitHub Secrets, automatically copied to your VM/Server
 - Continuous deployment through [Deploy action](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.github/workflows/deploy.yml#L12) for specified services on code merge
-- Automated Postgres database backups via GitHub Action cron jobs
+- Automated Postgres database backups via GitHub Action [cron jobs](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.github/workflows/db-backup.yml)
 - Run multiple apps (e.g., Next.js, Python/Go servers) on a single VM
-- Automated SSL setup with Traefik and Let's Encrypt (just add an A record to your DNS provider)
+- Automated SSL setup with [Traefik and Let's Encrypt](https://doc.traefik.io/traefik/user-guides/docker-compose/acme-tls/) (just add an A record to your DNS provider and you are all set)
 
 ## Let's Get Started! 🚀
 
@@ -80,14 +80,13 @@ Following are the variables consumed by the github actions
 
 Use **docker-compose.yml** for local development and **docker-compose-deploy.yml** for production.
 
-### 5. Set up Docker Compose files
-
 #### Local Development (docker-compose.yml)
 - Use `docker-compose.yml` for consistent local development environment
 - Modify services as needed for your project
 - Adjust Traefik routing:
   - Update labels for your services, such as port and domain for traefik
   - Local development does not use tls
+- Deploy pipeline will only build and push images for services that have `build` configuration in `docker-compose.yml`
 
 #### Production Deployment (docker-compose-prod.yml)
 - Use [`docker-compose-deploy.yml`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-deploy.yml) for server deployment
@@ -99,7 +98,7 @@ Use **docker-compose.yml** for local development and **docker-compose-deploy.yml
 - Specify services for continuous deployment (e.g., web, api) in the [`SERVICES_TO_PUSH`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.github/workflows/deploy.yml#L12) environment variable
 - Keep infrastructure services (e.g., Traefik, PostgreSQL, Redis) separate from CI/CD pipeline, they are only mentioned as dependencies and compose will ensure they are always restarted
 
-> **Note:** Ensure services that don't require CI/CD (like PostgreSQL, Redis, and Traefik) have dependencies set up properly. We're still working on a better deployment method for these services.
+> **Note:** Ensure services that don't require CI/CD (like PostgreSQL, Redis, and Traefik) have dependencies set up properly. We're still working on a better deployment method for these persistent services, if you have better ideas, please open an issue or submit a PR.
 
 ### 6. Understanding the Deployment Process
 
@@ -107,6 +106,6 @@ The deployment script performs these key actions:
 - Copies your `.env` file to the server
 - Updates `docker-compose-prod.yml` on the server
 - Deploys services with zero downtime:
-  - Pulls latest images
+  - Pulls latest images from GitHub Packages
   - Performs health checks
   - Rolls out updates without interruptions
