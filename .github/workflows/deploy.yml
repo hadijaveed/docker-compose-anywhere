@@ -145,8 +145,14 @@ jobs:
           SERVICES=$(docker compose -f "$COMPOSE_FILE" config --services)
           # Deploy all services
           docker compose -f "$COMPOSE_FILE" pull $SERVICES
+          # We skip services with container_name (e.g., db, redis) as they can't be scaled
+          # Use container_name with caution as it prevents Docker from creating multiple instances
           for service in $SERVICES; do
-            docker rollout -f "$COMPOSE_FILE" "$service"
+            if ! docker compose -f "$COMPOSE_FILE" config --services "$service" | grep -q "container_name:"; then
+              docker rollout -f "$COMPOSE_FILE" "$service"
+            else
+              echo "Skipping $service as it has a container_name specified. These are typically persistent services like db, or redis."
+            fi
           done
           # Remove orphaned Docker containers
           docker container prune -f
