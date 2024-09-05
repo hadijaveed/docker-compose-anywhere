@@ -1,72 +1,97 @@
 # Docker Compose Anywhere
-Servers/VMs have become cheaper and really powerful, often during initial build of the product we are bogged down by complexity of setting up Cloud, K8s and others.
 
-Docker compose is excellent tool for local development. But can it be used for production workloads? Yes, it can for initial build, plus scale to certain degree as your product grows. And once it grows engough you can swithc to more sopihisticated tools later
+Docker Compose Anywhere is a template for hassle-free application hosting on a single, powerful server or VM.
 
-THis project aims to provide workflows to deploy docker compose to production
-- Github action to setup a server or VM
-- Seamless SCP / SSH into the server with packages
-- Github action for (0 downtime)continuous deployment and setting up Github container registry
-- Secrets management with Github secrets (Note: Secrets are not encrypted on the server yet, still work in progress)
-- Continuous DB backups actions
-- Alerting and monitoring
+## Motivation
+Infrastructure don't have to be this hard e.g, K8s, cloud lingo, etc. Most applications can run reliably on a single server/VM, given how powerful they are these days. Your focus should be building product, not managing infrastructure. Docker compose is great for local development, but running docker compose in production is challenging due to downtime, this template addresses zero downtime deployment and setup all through github actions
 
+## 🛠️ What this template offers?
+- One-click Linux server setup with GitHub Actions
+- Secure [SSH](https://github.com/appleboy/ssh-action) and [SCP](https://github.com/appleboy/scp-action) for seamless docker deployment and environment variable management
+- Zero-downtime continuous deployment using GitHub Container Registry and [Docker Rollout](https://github.com/Wowu/docker-rollout)
+- Effortless secrets management with GitHub Secrets, automatically copied to your VM/Server
+- Continuous deployment through [Deploy action](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.github/workflows/deploy.yml#L12) for specified services on code merge
+- Automated Postgres database backups via GitHub Action cron jobs
+- Run multiple apps (e.g., Next.js, Python/Go servers) on a single VM
+- Automated SSL setup with Traefik and Let's Encrypt (just add an A record to your DNS provider)
 
+## Let's Get Started! 🚀
 
-For the most up-to-date list of supported Linux distributions, please refer to the [official Docker documentation on supported platforms](https://docs.docker.com/engine/install/#supported-platforms).
+Follow these simple steps to set up your Docker Compose Anywhere environment:
 
+### 1. Provision a VM (if you don't have one)
 
+- Choose a cloud provider of your choice (e.g,DigitalOcean, Linode, AWS, GCP, or Hetzner)
+- Select a supported Linux distribution (see [Docker's supported platforms](https://docs.docker.com/engine/install/#supported-platforms))
+- Make sure only SSH access, HTTP and HTTPS ports are open for security
 
+### 2. Generate SSH Key and Store in GitHub Secrets
 
+1. Generate an SSH key locally:
+   ```
+   ssh-keygen -t rsa -b 4096 -C "<server-user-name>"
+   ```
 
+2. Copy public key to your server through following command or do it manually:
+   ```
+   ssh-copy-id user@your_server_ip
+   ```
 
-## So let's get started
-First get a server or VM up and running. You can use any cloud provider (AWS EC2, GCP VM, Azure VM, Digital Ocean, Linode, etc) or even self hosted solution.
+   or copy the public key to your server manually, and append it to **`~/.ssh/authorized_keys`** file on your server
 
-## 1. Generating SSH key
+3. Copy private key to clipboard:
+   - macOS: `pbcopy < ~/.ssh/id_rsa`
+   - Linux: `xclip -sel clip < ~/.ssh/id_rsa`
 
-Generate SSH key on your local unix system using the following command:
+4. Add the following GitHub repository secrets:
+   - **`SSH_KEY`**: Paste private key
+   - **`HOST`**: Server's public IP
+   - **`USER`**: Server username
 
+5. Either clone the template or copy .github/workflows and environment files manually to your repository
 
-**Note:** Always generate SSH keys on your local computer, not on the server. Generating keys on the server is not recommended for security reasons.
+### 3. Initialize Your VM
 
-Here's how to generate an SSH key on your local machine:
+1. Go to GitHub repository "Actions" tab
+2. Find ["VM Initialization" workflow](https://github.com/hadijaveed/docker-compose-anywhere/actions/workflows/vm_init.yml)
+3. Click "Run workflow"
+4. Wait for successful completion
+5. Upon completion, your server will have Docker and Docker Compose installed with all the correct permissions
 
-1. Generate SSH Key
-```
-ssh-keygen -t rsa -b 4096 -C "server-user"
-```
-When prompted for paraphrase, either press enter or not enter one. (It is recommended for added security) 
+### 4. Create .env File and Add to GitHub Secrets
 
-Either copy SSH public key to server, either manually or user following command:
+1. Create `.env` file with app environment variables. You can use [`.env.sample`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.env.sample) as a reference. Depending on your application and [docker-compose-prod](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-prod.yml) setup you might need to add additional environment variables, adjust subdomains according to your domain setup, etc.
+2. Add entire `.env` contents as **`ENV_FILE`** secret variable in github secrets
 
-2. Copy public key to your VM/server, replace your current user and host:
-```
-cat ~/.ssh/id_rsa.pub | ssh server-user@<host> 'cat >> .ssh/authorized_keys'
-```
+### 5. Make docker-compose files ready and deploy
 
-3. Copy Private key and put in Github Secrets
-```
-# Ubuntu
-sudo apt-get install xclip
-```
+Use **docker-compose.yml** for local development and **docker-compose-deploy.yml** for production.
 
-copy private key to clipboard
-```
-# macOS
-pbcopy < ~/.ssh/id_rsa
-# Ubuntu
-xclip < ~/.ssh/id_rsa
-```
+### 5. Set up Docker Compose files
 
-- Add it to Github Secrets **SSH_KEY**
-- Add server host public IP to Github Secrets HOST
-- Add username to Github Secrets USER
-- Add paraphrase to Github Secrets **PARAPHRASE**, if you have added one
+#### Local Development (docker-compose.yml)
+- Use `docker-compose.yml` for consistent local development environment
+- Modify services as needed for your project
+- Adjust Traefik routing:
+  - Update labels for your services, such as port and domain for traefik
+  - Local development does not use tls
 
-## 2. Run the Initialize VM workflow
-Run the [Initialize VM workflow](https://github.com/hadijaveed/docker-compose-anywhere/actions/workflows/vm_init.yml) to set up Docker and Docker Compose on your server, and to get the VM ready. Run by clicking Run Workflow button
+#### Production Deployment (docker-compose-prod.yml)
+- Use `docker-compose-deploy.yml` for server deployment
+- Configure TLS in this file, it's already configured for traefik
+- Update image names to use GitHub Packages:
+  ```
+  image: ghcr.io/{username-or-orgname}/{repository-name}/{appName}:{version}
+  ```
+- Specify services for continuous deployment (e.g., web, app) in the `SERVICES_TO_PUSH` environment variable
+- Keep infrastructure services (e.g., Traefik) separate from CI/CD pipeline, they are only mentioned as dependencies and compose will make sure they are always restarted
 
-## 3. Define your docker compose files
+### 6. Understanding the Deployment Process
 
-
+The deployment script performs these key actions:
+- Copies your `.env` file to the server
+- Updates `docker-compose-prod.yml` on the server
+- Deploys services with zero downtime:
+  - Pulls latest images
+  - Performs health checks
+  - Rolls out updates without interruptions
