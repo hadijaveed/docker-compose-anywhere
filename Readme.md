@@ -100,6 +100,8 @@ Use **docker-compose.yml** for local development and **docker-compose-deploy.yml
 
 > **Note:** Ensure services that don't require CI/CD (like PostgreSQL, Redis, and Traefik) have dependencies set up properly. We're still working on a better deployment method for these persistent services, if you have better ideas, please open an issue or submit a PR.
 
+> **Note:** Ensure services that don't require CI/CD (like PostgreSQL, Redis, and Traefik) have dependencies set up properly in the `docker-compose-deploy.yml` file. For example:
+
 ### 6. Understanding the Deployment Process
 
 The deployment script performs these key actions:
