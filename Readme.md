@@ -60,8 +60,19 @@ Follow these simple steps to set up your Docker Compose Anywhere environment:
 
 ### 4. Create .env File and Add to GitHub Secrets
 
-1. Create `.env` file with app environment variables. You can use [`.env.sample`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.env.sample) as a reference. Depending on your application and [docker-compose-prod](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-prod.yml) setup you might need to add additional environment variables, adjust subdomains according to your domain setup, etc.
+1. Create `.env` file with app environment variables. You can use [`.env.sample`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.env.sample) as a reference. Depending on your application and [docker-compose-deploy](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-deploy.yml) setup you might need to add additional environment variables, adjust subdomains according to your domain setup, etc.
 2. Add entire `.env` contents as **`ENV_FILE`** secret variable in github secrets
+
+Following are the variables consumed by the github actions
+
+| Secret Variable | Description |
+|-----------------|-------------|
+| `SSH_KEY` | The private SSH key for accessing your server |
+| `HOST` | The public IP address or hostname of your server |
+| `USER` | The username for SSH access to your server |
+| `ENV_FILE` | The entire contents of your `.env` file, workflow will copy these to your server |
+| `POSTGRES_USER` | Only consumed by database migration script |
+
 
 ### 5. Make docker-compose files ready and deploy
 
@@ -81,7 +92,7 @@ Use **docker-compose.yml** for local development and **docker-compose-deploy.yml
 - Configure TLS in this file, it's already configured for traefik
 - Update image names to use GitHub Packages:
   ```
-  image: ghcr.io/{username-or-orgname}/{repository-name}/{appName}:{version}
+  image: ghcr.io/{username-or-orgname}/{repository-name}/{service}:{version}
   ```
 - Specify services for continuous deployment (e.g., web, app) in the `SERVICES_TO_PUSH` environment variable
 - Keep infrastructure services (e.g., Traefik) separate from CI/CD pipeline, they are only mentioned as dependencies and compose will make sure they are always restarted
