@@ -123,7 +123,9 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           sudo mkdir -p ${{ env.ROOT_DIRECTORY }}/dozzle/data
-          echo "${{ secrets.DOZZLE_USER_YAML }}" | sudo tee ${{ env.ROOT_DIRECTORY }}/dozzle/data/users.yml > /dev/null
+          cat <<EOL > ${{ env.ROOT_DIRECTORY }}/dozzle/data/users.yml
+          ${{ secrets.DOZZLE_USER_YAML }}
+          EOL
           sudo chown -R ${{ secrets.USER }}:${{ secrets.USER }} ${{ env.ROOT_DIRECTORY }}/dozzle
           sudo chmod 600 ${{ env.ROOT_DIRECTORY }}/dozzle/data/users.yml
 

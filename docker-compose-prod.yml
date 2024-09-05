@@ -160,9 +160,9 @@ services:
     restart: always
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=Host(`${DOZZLE_DOMAIN:-dozzle.localhost}`)"
-      - "traefik.http.routers.web.tls=${USE_SSL:-false}"
-      - "traefik.http.routers.web.tls.certresolver=myresolver"
+      - "traefik.http.routers.dozzle.rule=Host(`${DOZZLE_DOMAIN:-dozzle.localhost}`)"
+      - "traefik.http.routers.dozzle.tls=${USE_SSL:-false}"
+      - "traefik.http.routers.dozzle.tls.certresolver=myresolver"
       - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
     healthcheck:
       test: ["CMD", "/dozzle", "healthcheck"]
