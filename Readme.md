@@ -90,14 +90,16 @@ Use **docker-compose.yml** for local development and **docker-compose-deploy.yml
   - Local development does not use tls
 
 #### Production Deployment (docker-compose-prod.yml)
-- Use `docker-compose-deploy.yml` for server deployment
+- Use [`docker-compose-deploy.yml`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-deploy.yml) for server deployment
 - Configure TLS in this file, it's already configured for traefik
 - Update image names to use GitHub Packages:
   ```
   image: ghcr.io/{username-or-orgname}/{repository-name}/{service}:{version}
   ```
-- Specify services for continuous deployment (e.g., web, app) in the `SERVICES_TO_PUSH` environment variable
-- Keep infrastructure services (e.g., Traefik) separate from CI/CD pipeline, they are only mentioned as dependencies and compose will make sure they are always restarted
+- Specify services for continuous deployment (e.g., web, api) in the [`SERVICES_TO_PUSH`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.github/workflows/deploy.yml#L12) environment variable
+- Keep infrastructure services (e.g., Traefik, PostgreSQL, Redis) separate from CI/CD pipeline, they are only mentioned as dependencies and compose will ensure they are always restarted
+
+> **Note:** Ensure services that don't require CI/CD (like PostgreSQL, Redis, and Traefik) have dependencies set up properly. We're still working on a better deployment method for these services.
 
 ### 6. Understanding the Deployment Process
 
