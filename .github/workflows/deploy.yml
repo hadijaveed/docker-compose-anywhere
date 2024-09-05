@@ -9,7 +9,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  SERVICES_TO_PUSH: web,api,background
   ROOT_DIRECTORY: /opt
 
 jobs:
@@ -50,8 +49,11 @@ jobs:
                 return yaml.safe_load(file)
 
         def build_and_push_image(service, config):
-            context = config.get('build', {}).get('context', '.')
-            dockerfile = config.get('build', {}).get('dockerfile', 'Dockerfile')
+            if 'build' not in config:
+                return  # Skip services without build context
+
+            context = config['build'].get('context', '.')
+            dockerfile = config['build'].get('dockerfile', 'Dockerfile')
             
             if not os.path.isabs(dockerfile):
                 dockerfile = os.path.join(context, dockerfile)
@@ -77,20 +79,15 @@ jobs:
             print("-----------------------------------")
 
         docker_compose = parse_docker_compose()
-        services_to_push = os.environ['SERVICES_TO_PUSH'].split(',')
+        services_to_push = [service for service, config in docker_compose['services'].items() if 'build' in config]
 
         for service in services_to_push:
-            if service in docker_compose['services']:
-                build_and_push_image(service, docker_compose['services'][service])
-            else:
-                print(f"Warning: Service {service} not found in docker-compose.yml")
+            build_and_push_image(service, docker_compose['services'][service])
 
         print("\nSummary of pushed images:")
         for service in services_to_push:
-            if service in docker_compose['services']:
-                print(f"ghcr.io/{os.environ['IMAGE_NAME']}/{service}:latest")
+            print(f"ghcr.io/{os.environ['IMAGE_NAME']}/{service}:latest")
       shell: python
-
 
     - name: Create .env file for host
       run: |
@@ -144,13 +141,14 @@ jobs:
           COMPOSE_FILE="docker-compose.yml"
           # Authenticate Docker with GitHub Container Registry
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          # Deploy services in SERVICES_TO_PUSH
-          docker compose -f "$COMPOSE_FILE" pull $(echo ${{ env.SERVICES_TO_PUSH }} | tr ',' ' ')
-          IFS=',' read -ra SERVICES <<< "${{ env.SERVICES_TO_PUSH }}"
-          for service in "${SERVICES[@]}"; do
+          # Get all services
+          SERVICES=$(docker compose -f "$COMPOSE_FILE" config --services)
+          # Deploy all services
+          docker compose -f "$COMPOSE_FILE" pull $SERVICES
+          for service in $SERVICES; do
             docker rollout -f "$COMPOSE_FILE" "$service"
           done
           # Remove orphaned Docker containers
           docker container prune -f
           docker image prune -af
-          echo "🚀 Deployment complete! 🎉 Services are now up and running. 🌟"
+          echo "🚀 Deployment complete! 🎉 All services are now up and running. 🌟"
