@@ -3,11 +3,7 @@
 Docker Compose Anywhere is a template for hassle-free application hosting on a single, powerful server or VM.
 
 ## Motivation
-Infrastructure don't have to be this hard e.g, K8s, cloud lingo, etc. Most applications can run reliably on a single server/VM, given how powerful they are these days. Your focus should be building product, not managing infrastructure.
-
-Docker compose is great for local development, but running docker compose in production is challenging, because of the downtime you have to experience during the deployment. This template addresses zero downtime deployment, along with CI/CD setup to deploy on your server all through github actions
-
-
+Infrastructure don't have to be this hard e.g, K8s, cloud lingo, etc. Most applications can run reliably on a single server/VM, given how powerful they are these days. Your focus should be building product, not managing infrastructure. Docker compose is great for local development, but running docker compose in production is challenging due to downtime, this template addresses zero downtime deployment and setup all through github actions
 
 ## 🛠️ What this template offers?
 - One-click Linux server setup with GitHub Actions
