@@ -32,26 +32,23 @@ Follow these simple steps to set up your Docker Compose Anywhere environment:
    ssh-keygen -t rsa -b 4096 -C "<server-user-name>"
    ```
 
-2. Either copy public key to your server through following command:
+2. Copy public key to your server through following command or do it manually:
    ```
    ssh-copy-id user@your_server_ip
    ```
 
-   or copy the public key to your server manually, and append it to `~/.ssh/authorized_keys` file
+   or copy the public key to your server manually, and append it to **`~/.ssh/authorized_keys`** file on your server
 
 3. Copy private key to clipboard:
    - macOS: `pbcopy < ~/.ssh/id_rsa`
    - Linux: `xclip -sel clip < ~/.ssh/id_rsa`
 
-4. Clone the Docker Compose Anywhere template:
-   ```
-   git clone https://github.com/hadijaveed/docker-compose-anywhere.git
-   cd docker-compose-anywhere
-   ```
-5. Add the following GitHub repository secrets:
-   - `SSH_KEY`: Paste private key
-   - `HOST`: Server's public IP
-   - `USER`: Server username
+4. Add the following GitHub repository secrets:
+   - **`SSH_KEY`**: Paste private key
+   - **`HOST`**: Server's public IP
+   - **`USER`**: Server username
+
+5. Either clone the template or copy .github/workflows and environment files manually to your repository
 
 ### 3. Initialize Your VM
 
@@ -66,13 +63,37 @@ Follow these simple steps to set up your Docker Compose Anywhere environment:
 1. Create `.env` file with app environment variables. You can use [`.env.sample`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.env.sample) as a reference. Depending on your application and [docker-compose-prod](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-prod.yml) setup you might need to add additional environment variables, adjust subdomains according to your domain setup, etc.
 2. Add entire `.env` contents as **`ENV_FILE`** secret variable in github secrets
 
-### 5. Make sure
+### 5. Make docker-compose files ready and deploy
 
-1. Go to GitHub repository "Actions" tab
-2. Find "Deploy to VM" workflow
-3. Click "Run workflow"
-4. Monitor deployment progress
+Use **docker-compose.yml** for local development and **docker-compose-deploy.yml** for production.
 
-🎉 Success! Your app should now be running on your VM.
+### 5. Set up Docker Compose files
+
+#### Local Development (docker-compose.yml)
+- Use `docker-compose.yml` for consistent local development environment
+- Modify services as needed for your project
+- Adjust Traefik routing:
+  - Update labels for your services, such as port and domain for traefik
+  - Local development does not use tls
+
+#### Production Deployment (docker-compose-prod.yml)
+- Use `docker-compose-deploy.yml` for server deployment
+- Configure TLS in this file, it's already configured for traefik
+- Update image names to use GitHub Packages:
+  ```
+  image: ghcr.io/{username-or-orgname}/{repository-name}/{appName}:{version}
+  ```
+- Specify services for continuous deployment (e.g., web, app) in the `SERVICES_TO_PUSH` environment variable
+- Keep infrastructure services (e.g., Traefik) separate from CI/CD pipeline, they are only mentioned as dependencies and compose will make sure they are always restarted
+
+### 6. Understanding the Deployment Process
+
+The deployment script performs these key actions:
+- Copies your `.env` file to the server
+- Updates `docker-compose-prod.yml` on the server
+- Deploys services with zero downtime:
+  - Pulls latest images
+  - Performs health checks
+  - Rolls out updates without interruptions
 
 
