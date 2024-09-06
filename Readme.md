@@ -98,9 +98,9 @@ Use **docker-compose.yml** for local development and **docker-compose-deploy.yml
 - Specify services for continuous deployment (e.g., web, api) in the [`SERVICES_TO_PUSH`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.github/workflows/deploy.yml#L12) environment variable
 - Keep infrastructure services (e.g., Traefik, PostgreSQL, Redis) separate from CI/CD pipeline, they are only mentioned as dependencies and compose will ensure they are always restarted
 
-> **Note:** Ensure services that don't require CI/CD (like PostgreSQL, Redis, and Traefik) have dependencies set up properly. We're still working on a better deployment method for these persistent services, if you have better ideas, please open an issue or submit a PR.
+> **Note:** Ensure services that don't require CI/CD (like PostgreSQL, Redis, and Traefik) have dependencies set up properly. This is one of the limitations of [Docker Rollout]*(https://github.com/Wowu/docker-rollout?tab=readme-ov-file#%EF%B8%8F-caveats).
 
-> **Note:** Ensure services that don't require CI/CD (like PostgreSQL, Redis, and Traefik) have dependencies set up properly in the `docker-compose-deploy.yml` file. For example:
+> **Note:** Define infrastructure services (e.g., PostgreSQL, Redis, Traefik) in your docker-compose file without CI/CD. List these as dependencies for your application services to ensure proper startup order during deployment. e.g, follow the [docker-compose-deploy.yml](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-deploy.yml) file for reference.
 
 ### 6. Understanding the Deployment Process
 
@@ -111,3 +111,11 @@ The deployment script performs these key actions:
   - Pulls latest images from GitHub Packages
   - Performs health checks
   - Rolls out updates without interruptions
+
+## Quick Demo:
+For quick demo you can follow my example site
+- [App](https://app.hadijaveed.me/)
+- [API](https://api.hadijaveed.me/)
+- [Logs](https://dozzle.hadijaveed.me/)
+- [Environment for server](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/examples/environment)
+- [Docker Composed User](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-deploy.yml)
