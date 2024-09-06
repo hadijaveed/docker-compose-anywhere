@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v2.5
+    image: traefik:v3.1.2
     command:
       - "--api.insecure=true"  # Enable dashboard for local dev
       - "--providers.docker=true"

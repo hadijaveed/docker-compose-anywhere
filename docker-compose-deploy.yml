@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v2.5
+    image: traefik:v3.1.2
     command:
       - "--api.dashboard=true"
       - "--providers.docker=true"
