@@ -88,7 +88,7 @@ Use **docker-compose.yml** for local development and **docker-compose-deploy.yml
 #### Production Deployment (docker-compose-prod.yml)
 > **Important:** For CI/CD and deployment:
 > 
-> 1. In the deploy script, specify comma-separated services for CI/CD (e.g., `SERVICES_TO_PUSH: "web,api"`).
+> 1. In the deploy script, specify comma-separated services for CI/CD (e.g., [`SERVICES_TO_PUSH: "web,api"`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.github/workflows/deploy.yml#L12)).
 > 2. In `docker-compose-deploy.yml`:
 >    - Define infrastructure services (e.g., PostgreSQL, Redis, Traefik) without CI/CD.
 >    - List these as dependencies for your application services to ensure proper startup order.
