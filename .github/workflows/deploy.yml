@@ -136,6 +136,7 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         script: |
+          sudo mkdir -p /tmp
           sudo mv /tmp/.env /tmp/docker-compose-prod.yml ${{ env.ROOT_DIRECTORY }}/
           sudo mv ${{ env.ROOT_DIRECTORY }}/docker-compose-prod.yml ${{ env.ROOT_DIRECTORY }}/docker-compose.yml
           sudo chown ${{ secrets.USER }}:${{ secrets.USER }} ${{ env.ROOT_DIRECTORY }}/.env ${{ env.ROOT_DIRECTORY }}/docker-compose.yml
