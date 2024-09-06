@@ -62,6 +62,8 @@ Follow these simple steps to set up your Docker Compose Anywhere environment:
 
 ### 4. Create .env File and Add to GitHub Secrets
 
+Development environment [example](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/examples/environment)
+
 1. Create `.env` file with app environment variables. You can use [`.env.sample`](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/.env.sample) as a reference. Depending on your application and [docker-compose-deploy](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-deploy.yml) setup you might need to add additional environment variables, adjust subdomains according to your domain setup, etc.
 2. Add entire `.env` contents as **`ENV_FILE`** secret variable in github secrets
 
@@ -115,7 +117,7 @@ The deployment script performs these key actions:
 ## Quick Demo:
 For quick demo you can follow my example site
 - [App](https://app.hadijaveed.me/)
-- [API](https://api.hadijaveed.me/)
+- [API](https://api.hadijaveed.me/ping)
 - [Logs](https://dozzle.hadijaveed.me/)
 - [Environment for server](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/examples/environment)
-- [Docker Composed User](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-deploy.yml)
+- [Docker Composer Deployment](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-deploy.yml)
