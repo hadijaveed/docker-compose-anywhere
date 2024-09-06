@@ -112,7 +112,7 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
-        source: ".env,docker-compose-prod.yml"
+        source: ".env,docker-compose-deploy.yml"
         target: "/tmp"
 
     - name: Create dozzle/data directory and copy user.yml
@@ -137,8 +137,8 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           sudo mkdir -p /tmp
-          sudo mv /tmp/.env /tmp/docker-compose-prod.yml ${{ env.ROOT_DIRECTORY }}/
-          sudo mv ${{ env.ROOT_DIRECTORY }}/docker-compose-prod.yml ${{ env.ROOT_DIRECTORY }}/docker-compose.yml
+          sudo mv /tmp/.env /tmp/docker-compose-deploy.yml ${{ env.ROOT_DIRECTORY }}/
+          sudo mv ${{ env.ROOT_DIRECTORY }}/docker-compose-deploy.yml ${{ env.ROOT_DIRECTORY }}/docker-compose.yml
           sudo chown ${{ secrets.USER }}:${{ secrets.USER }} ${{ env.ROOT_DIRECTORY }}/.env ${{ env.ROOT_DIRECTORY }}/docker-compose.yml
           sudo chmod 600 ${{ env.ROOT_DIRECTORY }}/.env
           sudo chmod 644 ${{ env.ROOT_DIRECTORY }}/docker-compose.yml
