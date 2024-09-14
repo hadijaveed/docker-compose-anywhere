@@ -127,3 +127,12 @@ For quick demo you can follow my example site
 - [Logs](https://dozzle.hadijaveed.me/) (username: admin, password: password)
 - [Environment for server](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/examples/environment)
 - [Docker Composer Deployment](https://github.com/hadijaveed/docker-compose-anywhere/blob/main/docker-compose-deploy.yml)
+
+
+## Next Steps
+
+### Only for AWS specific environments (Not cloud native yet)
+
+- For AWS specific environments planning to use [Chamber](https://github.com/segmentio/chamber) to manage secrets, and removing .env file
+- Using AWS Systems Manager to run scripts... no need for SSH keys
+- Recipes for EC2 security patches using AWS systems manager
