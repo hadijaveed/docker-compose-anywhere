@@ -3,11 +3,11 @@
 A streamlined template for effortless application hosting on a single, powerful server or VM.
 
 ## 💡 Motivation
-You can read more here [Does Your Startup Really Need Complex Cloud Infrastructure?¶](https://hadijaveed.me/posts/does-your-startup-need-complex-cloud-infrastructure)
-
 Simplify infrastructure management without the complexity of Kubernetes or intricate cloud setups. Most applications can run reliably on a single server/VM, leveraging the power of modern hardware.
 
 Docker compose is great for local development, but running docker compose in production is challenging due to downtime, this template addresses zero downtime deployment and the setup with github actions
+
+You can read more here on this [blog](https://www.hadijaveed.me/2024/09/08/does-your-startup-really-need-complex-cloud-infrastructure) or [Hacker News Post](https://news.ycombinator.com/item?id=41527564)
 
 ## 🛠️ What this template offers?
 - One-click Linux server setup with GitHub Actions
